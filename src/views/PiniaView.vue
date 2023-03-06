@@ -9,11 +9,12 @@
 
 <script>
 import { computed } from 'vue';
-import { useCounterStore } from '@/store';
-
+import { useConfigStoreHook } from '@/store/modules/config';
+const configHook = useConfigStoreHook();
 export default {
   setup() {
-    const counterStore = useCounterStore();
+    const counterStore = configHook.getConfig('pmStorage');
+    console.log('counterStore', JSON.parse(JSON.stringify(counterStore)));
     // 获取单个 state 时，需要使用 computed，否则数据不是响应式
     const count = computed(() => counterStore.count);
     const accumulate = () => counterStore.accumulate();

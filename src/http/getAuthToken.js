@@ -1,8 +1,7 @@
-// import { ApiUrl, Config } from "@/config/config.js";
-import useConfig from '../config/useConfig';
-const { getConfig } = useConfig();
 import { ApiUrl } from '../api';
-const Config = getConfig();
+import { useConfigStoreHook } from '@/store/modules/config';
+const Config = useConfigStoreHook().getConfig();
+console.log('Config', Config);
 import axios from 'axios';
 import { localStorageAccessToken, goToLogin } from './index';
 import { getAccessToken } from './getAccessToken.js';

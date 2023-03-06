@@ -1,9 +1,8 @@
 import axios from 'axios';
-// import { Config, ApiUrl } from "@/config/config.js";
-import useConfig from '../config/useConfig';
-const { getConfig } = useConfig();
+import { useConfigStoreHook } from '@/store/modules/config';
+const Config = useConfigStoreHook().getConfig();
+console.log('Config', Config);
 import { ApiUrl } from '../api';
-const Config = getConfig();
 console.log('getAccessToken', Config);
 import { RandomString, createSign, isAccessTokenExist } from './index.js';
 export const getAccessToken = () => {

@@ -1,9 +1,9 @@
 import axios from 'axios';
 import { AjaxAuthToken } from './index';
-// import { getConfig } from '../config';
 import { ApiUrl } from '../api';
-import useConfig from '../config/useConfig';
-const { getConfig } = useConfig();
+import { useConfigStoreHook } from '@/store/modules/config';
+const Config = useConfigStoreHook().getConfig();
+console.log('Config', Config);
 import {
   RandomString,
   createSign,

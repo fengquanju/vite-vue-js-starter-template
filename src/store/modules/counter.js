@@ -10,3 +10,7 @@ export const useCounterStore = defineStore('counter', {
     },
   },
 });
+
+export function useCounterStoreHook() {
+  return useCounterStore(store);
+}

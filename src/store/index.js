@@ -2,7 +2,8 @@ import { createPinia } from 'pinia';
 
 const store = createPinia();
 
-export default store;
+export function setupStore(app) {
+  app.use(store);
+}
 
-export * from './modules/counter';
-export * from './modules/config';
+export { store };

@@ -17,7 +17,7 @@
     "url": "https://github.com/ElanYoung/vite-vue-js-starter-template/issues"
   },
   "scripts": {
-    "dev": "vite",
+    "dev": "vite --force",
     "build": "vite build",
     "preview": "vite preview",
     "lint": "eslint --ext .vue,.js,.jsx,.ts,.tsx ./ --max-warnings 0 --cache --cache-location node_modules/.cache/eslint/",

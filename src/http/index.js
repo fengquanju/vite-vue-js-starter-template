@@ -1,11 +1,10 @@
 import axios from 'axios';
 import sha1 from 'js-sha1';
 import md5 from 'js-md5';
-// import { Config, AppUrl, domainConfig } from "@/config/config.js";
-import useConfig from '../config/useConfig';
-const { getConfig } = useConfig();
+import { useConfigStoreHook } from '@/store/modules/config';
+const Config = useConfigStoreHook().getConfig();
+console.log('Config', Config);
 import { ApiUrl } from '../api';
-const Config = getConfig();
 import { refreshAccessToken } from './refreshAccessToken.js';
 import { UserLogin } from './getAuthToken';
 import { getAccessToken } from './getAccessToken';

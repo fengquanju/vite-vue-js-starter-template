@@ -7,12 +7,20 @@ import '@/assets/main.css';
 import '@/style/index.less';
 import { userTokenStoreHook } from '@/store/modules/userToken';
 import { useConfigStoreHook } from '@/store/modules/config';
+
 const configStoreHook = useConfigStoreHook();
 // 引入组件库全局样式资源
 const app = createApp(App);
 configStoreHook.getServerConfig().then(() => {
   app.use(router);
   setupStore(app);
-  userTokenStoreHook().getAccessToken();
+  userTokenStoreHook()
+    .getAccessToken()
+    .then(() => {
+      userTokenStoreHook().userLogin({
+        username: 'admin',
+        password: 'admin',
+      });
+    });
   app.mount('#app');
 });

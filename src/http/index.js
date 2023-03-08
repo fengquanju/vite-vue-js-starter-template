@@ -1,154 +1,118 @@
-import axios from 'axios';
-import sha1 from 'js-sha1';
-import md5 from 'js-md5';
-import { useConfigStoreHook } from '@/store/modules/config';
-const Config = useConfigStoreHook().getConfig();
-console.log('Config', Config);
-import { ApiUrl } from '../api';
-import { refreshAccessToken } from './refreshAccessToken.js';
-import { UserLogin } from './getAuthToken';
-import { getAccessToken } from './getAccessToken';
+import Axios from 'axios';
+import { userTokenStoreHook } from '@/store/modules/userToken';
 
-// import { baseApiUrl } from "@/api/api.js";
-let baseApiUrl = Config.baseUrl;
-
-let auth_token = Config.VLSAuthToken;
-let access_token = Config.VLSAccessToken;
-
-export function localStorageAuthToken() {
-  if (localStorage.getItem(auth_token)) {
-    return localStorage.getItem(auth_token);
-  } else {
-    return false;
-  }
-}
-export function localStorageAccessToken() {
-  if (localStorage.getItem(access_token)) {
-    return localStorage.getItem(access_token);
-  } else {
-    return false;
-  }
-}
-
-export const isAccessTokenExist = () => {
-  if (localStorage.getItem(access_token) && localStorage.getItem(access_token) != 'undefined') {
-    return true;
-  } else {
-    return false;
-  }
+const defaultConfig = {
+  // 请求超时时间
+  timeout: 10000,
+  headers: {
+    Accept: 'application/json, text/plain, */*',
+    'Content-Type': 'application/json',
+    'X-Requested-With': 'XMLHttpRequest',
+  },
+  withCredentials: true,
+  // 数组格式参数序列化（https://github.com/axios/axios/issues/5142）
+  paramsSerializer: {
+    // serialize: CustomParamsSerializer,
+  },
 };
-//登录相关处理
-const env = import.meta.env;
 
-export function goToLogin() {
-  if (env.MODE == 'development') {
-    window.location.href = 'http://localhost:8080';
-  } else {
-    //清除auth_token
-    var auth_token_key = Config.VLSAuthToken;
-    localStorage.removeItem(auth_token_key);
-    // if (parent.window) {
-    //   parent.window.location.href = AppUrl.Login;
-    // } else {
-    //   window.location.href = AppUrl.Login;
-    // }
+class PureHttp {
+  constructor() {
+    this.httpInterceptorsResponse();
   }
-}
-// console.log(goToLogin);
-export function RandomString(len) {
-  len = typeof len !== 'undefined' ? len : 32;
-  var chars = 'ABCDEFGHIJKLMNOPQRSTUVWXYZabcdefghijklmnopqrstuvwxyz0123456789';
-  /****默认去掉了容易混淆的字符oOLl,9gq,Vv,Uu,I1****/
-  var maxPos = chars.length;
-  var tmp = '';
-  for (var i = 0; i < len; i++) {
-    var index = Math.floor(Math.random() * maxPos);
-    tmp += chars.charAt(index);
-  }
-  return tmp;
-}
-export function createSign(obj) {
-  // 处理时间
-  if (obj.timestamp) obj.timestamp = parseInt(obj.timestamp / 1000);
 
-  var arr = [];
-  for (var item in obj) {
-    arr.push(obj[item]);
-    arr.sort();
-  }
-  var arrString = arr.join('');
-  var sha1Str = sha1(arrString);
-  var md5Str = md5(sha1Str);
-  var signStr = md5Str.toUpperCase();
-  return signStr;
-}
+  /** token过期后，暂存待执行的请求 */
+  static requests = [];
 
-export function isAuthTokenExist() {
-  var auth_token = Config.VLSAuthToken;
-  if (localStorage.getItem(auth_token) && localStorage.getItem(auth_token) != 'undefined') {
-    return true;
-  } else {
-    return false;
-  }
-}
+  /** 防止重复刷新token */
+  static isRefreshing = false;
 
-export function MiddlewareErrorProcessor(code, url, data) {
-  localStorage.removeItem(auth_token);
-  localStorage.removeItem(access_token);
-  getAccessToken().then(() => {
-    UserLogin({
-      username: 'admin',
-      password: 'admin',
-    }).catch((err) => {
-      debugger;
+  /** 初始化配置对象 */
+  static initConfig = {};
+
+  /** 保存当前Axios实例对象 */
+  static axiosInstance = Axios.create(defaultConfig);
+
+  /** 重连原始请求 */
+  static retryOriginalRequest(config) {
+    return new Promise((resolve) => {
+      PureHttp.requests.push((token) => {
+        console.log(token);
+        // config.headers.Authorization = formatToken(token);
+        resolve(config);
+      });
     });
-  });
+  }
+
+  /* 响应拦截 */
+  httpInterceptorsResponse() {
+    const instance = PureHttp.axiosInstance;
+    instance.interceptors.response.use(
+      (response) => {
+        if (response.data.code === 403.12) {
+          console.error('nihao');
+        }
+        const $config = response.config;
+        // 关闭进度条动画
+        // NProgress.done();
+        // 优先判断post/get等方法是否传入回掉，否则执行初始化设置等回掉
+        if (typeof $config.beforeResponseCallback === 'function') {
+          $config.beforeResponseCallback(response);
+          return response.data;
+        }
+        if (PureHttp.initConfig.beforeResponseCallback) {
+          PureHttp.initConfig.beforeResponseCallback(response);
+          return response.data;
+        }
+        return response.data;
+      },
+      (error) => {
+        console.log('error', error);
+        if (error.response.data.code === 403.12) {
+          // access-token Err
+          userTokenStoreHook().refreshAccessToken();
+        }
+        const $error = error;
+        $error.isCancelRequest = Axios.isCancel($error);
+        // 关闭进度条动画
+        // NProgress.done();
+        // 所有的响应异常 区分来源为取消请求/非取消请求
+        return Promise.reject($error);
+      },
+    );
+  }
+
+  /** 通用请求工具函数 */
+  request(method, url, param, axiosConfig) {
+    const config = {
+      method,
+      url,
+      ...param,
+      ...axiosConfig,
+    };
+
+    // 单独处理自定义请求/响应回掉
+    return new Promise((resolve, reject) => {
+      PureHttp.axiosInstance
+        .request(config)
+        .then((response) => {
+          resolve(response);
+        })
+        .catch((error) => {
+          reject(error);
+        });
+    });
+  }
+
+  /** 单独抽离的post工具函数 */
+  post(url, params, config) {
+    return this.request('post', url, params, config);
+  }
+
+  /** 单独抽离的get工具函数 */
+  get(url, params, config) {
+    return this.request('get', url, params, config);
+  }
 }
 
-const baseHttp = axios.create({ timeout: 1000 * 60 });
-
-baseHttp.defaults.withCredentials = false;
-baseHttp.defaults.baseURL = baseApiUrl;
-baseHttp.interceptors.response.use(
-  (res) => {
-    if (res.status == 200) {
-      let data = res.data;
-
-      return { ...data.result, ...data };
-    }
-    return res.data;
-  },
-  (err) => {
-    debugger;
-    let code = err.response.data.code;
-    let { url, data } = err.config;
-    MiddlewareErrorProcessor(code, url, data);
-  },
-);
-
-export const AjaxAuthToken = (url, data) => {
-  // 如果auth_token不存在
-  data ? data : {};
-
-  //任何一个不存在，都踢出到登录
-  if (!auth_token || !access_token) {
-    // console.log("回到了最初的请求");
-    goToLogin();
-    return false; //终止处理
-  }
-  let headers = {
-    appid: Config.AppAppid,
-    'mbcore-access-token': localStorageAccessToken(),
-    'mbcore-auth-token': localStorageAuthToken(),
-  };
-  baseHttp.defaults.headers = headers;
-  // // 头文件
-  // headers["mbcore-access-token"] = access_token;
-  // headers["mbcore-auth-token"] = auth_token;
-
-  // 请求ajax
-  return baseHttp.post(url, data).then((res) => {
-    let tempRes = res != undefined ? res : { result: {} };
-    return tempRes;
-  });
-};
+export const http = new PureHttp();

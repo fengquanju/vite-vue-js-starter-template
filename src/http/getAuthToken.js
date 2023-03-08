@@ -1,19 +1,20 @@
+import axios from 'axios';
 import { ApiUrl } from '../api';
 import { useConfigStoreHook } from '@/store/modules/config';
+import { localStorageAccessToken, goToLogin } from './index.bk';
+import { getAccessToken } from './getAccessToken.js';
+
 const Config = useConfigStoreHook().getConfig();
 console.log('Config', Config);
-import axios from 'axios';
-import { localStorageAccessToken, goToLogin } from './index';
-import { getAccessToken } from './getAccessToken.js';
 // import { refreshAccessToken } from "./refreshAccessToken";
-export let UserLogin = async function (data) {
+export const UserLogin = async function (data) {
   // 如果access_token不存在
-  let { code } = await getAccessToken();
+  const { code } = await getAccessToken();
   debugger;
   if (code == 1) {
-    var access_token = localStorageAccessToken();
+    const access_token = localStorageAccessToken();
 
-    var headers = {
+    const headers = {
       appid: Config.AppAppid,
       'mbcore-access-token': access_token,
     };
@@ -26,8 +27,8 @@ export let UserLogin = async function (data) {
       .post(ApiUrl.LoginApi, data)
       .then((res) => {
         res = res.data;
-        var auth_token_value = res.result.auth_token;
-        var auth_token_key = Config.VLSAuthToken;
+        const auth_token_value = res.result.auth_token;
+        const auth_token_key = Config.VLSAuthToken;
         localStorage.setItem(auth_token_key, auth_token_value);
         return res;
       })
@@ -35,7 +36,6 @@ export let UserLogin = async function (data) {
         debugger;
         console.log(err);
       });
-  } else {
-    debugger;
   }
+  debugger;
 };

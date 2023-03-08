@@ -1,11 +1,13 @@
 {
-  "pmCore": "https://new-mbdev-pettyb.pettyb.com/",
-  "pmStorage": "https://new-mbdev-pettyb-storage.pettyb.com/",
-  "groupName": "dev_activity_",
-  "baseUrl": "https://mbdev-activity-api.pettyb.com/",
-  "baseClient": "https://mbdev-activity.pettyb.com/ActivityAdmin/",
-  "AppAppid": "316wFo1gvYUUrwU8Z1x7i2a0XLY73vzv",
-  "AppSecret": "nAecHqNwqhk3Va0T8TqtgrdZWYxIoclL",
+  "pmCore": "https://mbdev-pettyb.pettyb.com/",
+  "pmStorage": "https://mbdev-pettyb-storage.pettyb.com/",
+  "groupName": "dev_security_",
+  "baseUrl": "https://mbdev.pettyb.com/SecurityApi/",
+  "baseClient": "https://mbdev.pettyb.com/SecurityAdmin/",
+  "logo": "https://oss.mbcore.com/image/2021/06/18/58564237f76f1e75c451b9b468698fb5a7ea9653",
+  "storeName": "小砖猿丨慧下达",
+  "AppAppid": "kGV6JeZjaJ2U1C1JBys1d0ZWmiLFTnyB",
+  "AppSecret": "LWo9pYVATFmooqfzmwPOaFdiOSTG55o8",
   "AppChannel": "pcadmin",
-  "AppGroupId": "166"
+  "AppGroupId": "17"
 }

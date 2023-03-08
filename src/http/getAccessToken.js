@@ -1,65 +1,67 @@
 import axios from 'axios';
 import { useConfigStoreHook } from '@/store/modules/config';
+import { ApiUrl } from '../api';
+import { RandomString, createSign, isAccessTokenExist } from './index.bk.js';
+
 const Config = useConfigStoreHook().getConfig();
 console.log('Config', Config);
-import { ApiUrl } from '../api';
 console.log('getAccessToken', Config);
-import { RandomString, createSign, isAccessTokenExist } from './index.js';
+
 export const getAccessToken = () => {
   // 判断access_token是否存在，存在则返回
   // if (isAccessTokenExist()) {
   //   return false;
   // }
   // 执行正常请求
-  let is_ios_client = true;
-  var timestamp = new Date().getTime();
-  var nonce_str = RandomString();
+  const is_ios_client = true;
+  const timestamp = new Date().getTime();
+  const nonce_str = RandomString();
   // VLSClient
-  var MBCoreClientKey = Config.VLSClient;
-  var MBCoreClientValue = null; //localStorage.getItem(MBCoreClientKey);
+  const MBCoreClientKey = Config.VLSClient;
+  let MBCoreClientValue = null; // localStorage.getItem(MBCoreClientKey);
   if (is_ios_client) {
     MBCoreClientValue = sessionStorage.getItem(MBCoreClientKey);
   } else {
     MBCoreClientValue = localStorage.getItem(MBCoreClientKey);
   }
-  var obj = {
+  const obj = {
     appid: Config.AppAppid,
     secret: Config.AppSecret,
     group_id: Config.AppGroupId,
     channel: Config.AppChannel,
     grant_type: Config.GrantTypeAccessToken,
-    timestamp: timestamp,
-    nonce_str: nonce_str,
+    timestamp,
+    nonce_str,
     mac: MBCoreClientValue,
   };
-  var sign = createSign(obj);
+  const sign = createSign(obj);
 
-  var data = {
+  const data = {
     grant_type: Config.GrantTypeAccessToken,
-    timestamp: timestamp,
-    nonce_str: nonce_str,
-    sign: sign,
+    timestamp,
+    nonce_str,
+    sign,
     mac: MBCoreClientValue,
   };
-  var headers = {
+  const headers = {
     appid: Config.AppAppid,
     channel: Config.AppChannel,
   };
 
   return axios({
     method: 'post',
-    data: data,
+    data,
     url: ApiUrl.getAccessToken,
-    headers: headers,
+    headers,
   }).then((res) => {
     res = res.data;
-    var access_token_key = Config.VLSAccessToken;
-    //access_token缓存到本地
+    const access_token_key = Config.VLSAccessToken;
+    // access_token缓存到本地
     localStorage.setItem(access_token_key, res.result.access_token);
 
     // 如果返回cuuid写入mac
     if (res.result.cuuid) {
-      var MBCoreClientKey = Config.VLSClient;
+      const MBCoreClientKey = Config.VLSClient;
       localStorage.setItem(MBCoreClientKey, res.result.cuuid);
     }
     return res;

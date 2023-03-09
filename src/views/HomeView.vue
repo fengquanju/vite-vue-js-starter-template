@@ -3,9 +3,15 @@ import TheWelcome from '@/components/TheWelcome.vue';
 import { http } from '@/http';
 import { useBaseUrlHook } from '@/api';
 
-http.post(`${useBaseUrlHook('getProjectData')}279`).then((res) => {
-  console.log(res);
-});
+http
+  .Ajax({
+    url: useBaseUrlHook('getProjectData') + '279',
+    data: {},
+    is_login: true,
+  })
+  .then((res) => {
+    console.log(res);
+  });
 </script>
 
 <template>

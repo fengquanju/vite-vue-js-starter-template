@@ -1,5 +1,4 @@
 import { defineStore } from 'pinia';
-import axios from 'axios';
 import { store } from '../index';
 import { useConfigStoreHook } from '@/store/modules/config';
 import { useCoreUrlHook } from '@/api';
@@ -121,7 +120,7 @@ export const userTokenStore = defineStore('userToken', {
           const auth_token_key = Config.VLSAuthToken;
           localStorage.removeItem(auth_token_key);
         }
-        return res;
+        return res.result.access_token;
       });
     },
   },

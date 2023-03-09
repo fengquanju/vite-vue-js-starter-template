@@ -16,11 +16,6 @@ configStoreHook.getServerConfig().then(() => {
   setupStore(app);
   userTokenStoreHook()
     .getAccessToken()
-    .then(() => {
-      userTokenStoreHook().userLogin({
-        username: 'admin',
-        password: 'admin',
-      });
-    });
+    .then(() => {});
   app.mount('#app');
 });

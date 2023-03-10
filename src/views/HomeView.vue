@@ -1,9 +1,9 @@
 <script setup>
+import { inject } from 'vue';
 import TheWelcome from '@/components/TheWelcome.vue';
 import { http } from '@/http';
 import { useBaseUrlHook } from '@/api';
-import { injectGlobalHook } from '@/utils/global';
-const global = injectGlobalHook();
+const global = inject('global');
 global.message.error('我错了');
 http
   .Ajax({

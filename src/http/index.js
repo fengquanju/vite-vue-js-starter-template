@@ -1,8 +1,7 @@
 import Axios from 'axios';
 import { userTokenStoreHook } from '@/store/modules/userToken';
 import { useConfigStoreHook } from '@/store/modules/config';
-import { useGlobalHook } from '@/utils/global';
-
+import { global } from '@/utils/global';
 // global.message.error('我是错误3');
 const configHook = useConfigStoreHook();
 import router from '@/router';
@@ -55,7 +54,6 @@ class PureHttp {
       (response) => {
         // response.data.code
         const $config = response.config;
-        const global = useGlobalHook();
         global.message.error('我错了3');
         // 关闭进度条动画
         // NProgress.done();
